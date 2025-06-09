@@ -1,0 +1,10 @@
+numpy
+pandas
+fastapi
+uvicorn
+google-generativeai
+Pillow
+jinja2
+python-dotenv
+supabase
+pydantic
