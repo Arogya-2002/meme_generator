@@ -1,71 +1,63 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-import base64
-import sys
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from io import BytesIO
+from uvicorn import run as uvicorn_run
 
-from src.pipeline.run_meme_generator_pipeline import run_pipeline, fetch_image_templates
 from src.exceptions import CustomException
+from src.logger import logging
+from src.pipeline.run_meme_generator_pipeline import run_pipeline, fetch_image_templates  # Assuming your code is in pipeline.py
 
-app = FastAPI()
+app = FastAPI(title="Meme Generator API with Emotion Analysis")
 
-# CORS Setup
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For dev; restrict in prod
+    allow_origins=["*"],  # Change this to specific domains in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Input model
-class TopicInput(BaseModel):
+# Request schema
+class TopicRequest(BaseModel):
     topic_name: str
 
-# --- Routes ---
+@app.get("/")
+def root():
+    return {"message": "Welcome to the Meme Generator API!"}
 
-@app.post("/generate-meme", summary="Generate meme and return PNG")
-def generate_meme_api(input: TopicInput):
+
+@app.post("/generate-meme/")
+def generate_meme_api(request: TopicRequest):
     try:
-        result = run_pipeline(input.topic_name)
-        image_bytes = result["image_bytes"]
-        emotion = result["emotion"]
+        result = run_pipeline(request.topic_name)
 
-        image_bytes.seek(0)
+        # Move pointer to start of BytesIO stream
+        result["image_bytes"].seek(0)
 
         return StreamingResponse(
-            image_bytes,
+            result["image_bytes"],  # Pass the BytesIO object directly
             media_type="image/png",
-            headers={"X-Emotion": emotion}
+            headers={"X-Emotion": result["emotion"]}
         )
-    except Exception as e:
+    except CustomException as e:
+        logging.error(f"CustomException: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/generate-meme-base64", summary="Generate meme and return as base64")
-def generate_meme_base64_api(input: TopicInput):
-    try:
-        result = run_pipeline(input.topic_name)
-        image_bytes = result["image_bytes"]
-        emotion = result["emotion"]
-
-        image_bytes.seek(0)
-        base64_str = base64.b64encode(image_bytes.read()).decode()
-
-        return {
-            "status": "success",
-            "emotion": emotion,
-            "image_base64": f"data:image/png;base64,{base64_str}"
-        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Unhandled exception: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.get("/fetch-templates", summary="Fetch image templates from Supabase")
+@app.get("/fetch-templates/")
 def fetch_templates_api():
     try:
-        result = fetch_image_templates()
-        return JSONResponse(content={"status": "success", "templates": result})
-    except Exception as e:
+        response = fetch_image_templates()
+        return response
+    except CustomException as e:
+        logging.error(f"Template fetch failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    uvicorn_run("app:app",host="0.0.0.0", port=8000, reload=True)

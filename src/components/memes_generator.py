@@ -33,19 +33,41 @@ class MemesGenerator:
         try:
             logging.info(f"Generating meme dialogues for topic='{topic}', emotion='{emotion}'")
             prompt = f"""
-            Create two funny Tenglish (Telugu-English mix) dialogues for a meme about: "{topic}"
-            The emotion/tone should be: {emotion}
-                
-            Your response should have exactly two dialogues:
-            - First dialogue (for upper part of meme)
-            - Second dialogue (for lower part of meme)
-                
-            Make sure both dialogues are witty and related to each other, with the second one being a punchline or response.
-            Keep each dialogue under 100 characters for readability.
-            Use Tenglish (Telugu words written in English script mixed with English).
-                
-            DO NOT format as JSON or include any formatting, just provide the two dialogues separated by a newline.
-            """
+        You are a hilarious Tenglish (Telugu-English) comedy writer. Create two EXTREMELY FUNNY dialogues for a meme about "{topic}" with {emotion} emotion.
+
+        CRITICAL INSTRUCTIONS:
+        1. Use natural Tenglish mixing (Telugu words in English script + English)
+        2. Make it GENUINELY FUNNY - use relatable situations, wordplay, cultural references
+        3. First dialogue: Setup the situation/context
+        4. Second dialogue: Deliver the punchline/twist/reaction
+        5. Each dialogue should be 50-80 characters for perfect readability
+        6. Use popular Telugu expressions mixed with English slang
+
+        EMOTION-SPECIFIC GUIDANCE:
+        - Happy: Use celebrations, achievements, good news reactions
+        - Sad: Use disappointments, failures, heartbreak situations  
+        - Angry: Use frustration, arguments, annoying situations
+        - Surprise: Use unexpected twists, shocking revelations
+        - Sarcastic: Use witty comebacks, ironic situations
+        - Neutral: Use everyday relatable situations
+
+        EXAMPLES OF GOOD TENGLISH DIALOGUES:
+        Topic: Office Work, Emotion: Angry
+        "Boss: Weekend lo office raa"
+        "Me: Naa jeevitham lo weekend ey ledu anta"
+
+        Topic: Food, Emotion: Happy  
+        "Amma biryani chesindi!"
+        "Diet plan: Repu nunchi start chestha"
+
+        Topic: Friends, Emotion: Sarcastic
+        "Friend: Nenu busy, call cheyya"
+        "Also friend: Instagram lo active ga undi"
+
+        Now create for Topic: "{topic}", Emotion: "{emotion}"
+        
+        RETURN ONLY TWO DIALOGUES - NO EXPLANATIONS, NO FORMATTING:
+        """
             response = self.model.generate_content(prompt)
             text = response.text.strip()
             lines = [line.strip() for line in text.split("\n") if line.strip()]

@@ -102,6 +102,6 @@ class MemeTemplates:
         for emotion, urls in list(emotion_to_urls.items())[:5]:
             logging.info(f"  • {emotion}: {len(urls)} images")
 
-if __name__ == "__main__":
-    meme_temp = MemeTemplates()
-    meme_temp.get_emotion_images()
+# if __name__ == "__main__":
+#     meme_temp = MemeTemplates()
+#     meme_temp.get_emotion_images()

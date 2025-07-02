@@ -52,3 +52,13 @@ def run_pipeline(topic_name: str):
         }
     except Exception as e:
         raise CustomException(e, sys)
+    
+if __name__ == "__main__":
+    try:
+        topic_name = "exam failed"  # Replace with your topic name
+        result = run_pipeline(topic_name)
+        print(f"Generated meme for emotion: {result['emotion']}")
+    except CustomException as e:
+        logging.error(f"Pipeline failed: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
