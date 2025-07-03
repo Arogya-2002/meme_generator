@@ -1,6 +1,7 @@
 import os
 import sys
 import google.generativeai as genai
+import io
 
 from src.exceptions import CustomException
 from src.logger import logging
